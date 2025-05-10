@@ -20,6 +20,8 @@ public class PrimaryController {
     private TextField usernameField; 
 
     public static DBConnector dbConnector;
+    public static int playerID;
+    public static String playerName;
 
 
     @FXML
@@ -43,17 +45,25 @@ public class PrimaryController {
     }
 
     @FXML 
-    public void createAccount(ActionEvent event) {
-        String username = usernameField.getText();
+    public void createAccount() {
+        String username = usernameField.getText().trim();
+
         if (username.isEmpty()) {
             System.out.println("Please enter a username.");
             return;
         }
         
-        // Here you can add logic to create an account in the database
+        try(DBConnector dbConnector = DBConnector.INSTANCE) {
+            // Assuming you have a method to create an account in your DBConnector
+            dbConnector.createAccount(username);
+        } catch (Exception e) {
+            System.out.println("Error creating account: " + e.getMessage());
+            return;
+        }
+        
         System.out.println("Account created for user: " + username);
         
-        // Proceed to the next screen
+        
         try {
             App.setRoot("card");
         } catch (IOException e) {
@@ -61,7 +71,7 @@ public class PrimaryController {
             e.printStackTrace();
         }
     }
-    
+
     @FXML
     private void switchToSecondary() throws IOException {
         App.setRoot("secondary");

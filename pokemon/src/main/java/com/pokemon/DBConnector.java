@@ -2,6 +2,7 @@ package com.pokemon;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public enum DBConnector {
@@ -38,6 +39,22 @@ public enum DBConnector {
             }
         } catch (SQLException e) {
             System.out.println("Error closing the connection: " + e.getMessage());
+        }
+    }
+
+    public void createAccount(String username) {
+        
+        if (username == null || username.isEmpty()) {
+            System.out.println("Username cannot be null or empty");
+            return;
+        }
+        String sql = "INSERT INTO player (username) VALUES (?)";
+        try (PreparedStatement pstmt = connenction.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            pstmt.executeUpdate();
+            System.out.println("Account created for user: " + username);
+        } catch (SQLException e) {
+            System.out.println("Error creating account: " + e.getMessage());
         }
     }
 
