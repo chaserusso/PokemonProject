@@ -46,7 +46,7 @@ type_id INT auto_increment,
 type_name VARCHAR(58) NOT NULL,
 damage_type_id INT(11) DEFAULT NULL, 
 PRIMARY KEY (type_id),
-KEY damage_type_idc (damage_type_id),
+KEY damage_type_id (damage_type_id),
 CONSTRAINT damage_type FOREIGN KEY (damage_type_id) REFERENCES type_effiency (damage_type_id) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) auto_increment = 10003;
 
@@ -131,15 +131,18 @@ CREATE TABLE cards(
 card_id INT NOT NULL auto_increment PRIMARY KEY, 
 pok_id INT NOT NULL, 
 owned_by_player bool DEFAULT FALSE, 
+player_id INT DEFAULT NULL,
 KEY pok_id(pok_id),
-CONSTRAINT card_pok_id FOREIGN KEY (pok_id) references pokemon (pok_id) ON UPDATE CASCADE
+KEY player_id(player_id),
+CONSTRAINT card_pok_id FOREIGN KEY (pok_id) references pokemon (pok_id) ON UPDATE CASCADE,
+CONSTRAINT card_player_id FOREIGN KEY (player_id) references player (player_id) ON UPDATE CASCADE
 
 ) auto_increment = 724;
 
 DROP TABLE IF EXISTS player; 
 CREATE TABLE player(
 
-player_id INT NOT NULL auto_increment PRIMARY KEY, 
+player_id INT auto_increment PRIMARY KEY, 
 username VARCHAR(128) NOT NULL UNIQUE, 
 coins INT DEFAULT 10000, 
 wins INT DEFAULT 0, 
@@ -198,18 +201,47 @@ DROP PROCEDURE IF EXISTS populate_cards;
 CREATE PROCEDURE populate_cards()
 BEGIN
   DECLARE i INT DEFAULT 1;
-  WHILE i <= 724 DO
-    INSERT INTO cards (pok_id, owned_by_player) VALUES (i, FALSE);
+  WHILE i <= 710 DO
+    INSERT INTO cards (pok_id, owned_by_player, player_id) VALUES (i, FALSE, NULL);
     SET i = i + 1;
   END WHILE;
 END$$
-
 DELIMITER ;
 
 CALL populate_cards();
 
-CREATE VIEW pok_data() ;
+CREATE VIEW pok_card AS 
+SELECT pokemon.pok_id AS pokemon_id, base_stats.pok_id AS base_stats_pok_id, cards.pok_id AS cards_pok_id
+FROM pokemon JOIN base_stats ON pokemon.pok_id = base_stats.pok_id JOIN cards ON pokemon.pok_id = cards.pok_id;
+
+CREATE VIEW player_cards AS 
+SELECT cards.player_ID AS player_cards, player.player_id AS player_id
+FROM cards JOIN player ON player.player_id = cards.player_id;
+
+CREATE VIEW pok_mov_abil AS 
+SELECT pokemon.pok_id AS pokemon_id, pokemon_abilities.pok_id AS pokemon_abilities_pok_id, pokemon_moves.pok_id AS pokemon_moves_pok_id
+FROM pokemon JOIN pokemon_abilities ON pokemon.pok_id = pokemon_abilities.pok_id JOIN pokemon_moves ON pokemon.pok_id = pokemon_moves.pok_id;
 
 SELECT * FROM cards; 
+
+DELIMITER $$ 
+CREATE TRIGGER befo_pok_up 
+	BEFORE UPDATE ON pokemon
+	FOR EACH ROW 
+BEGIN 
+	SET NEW.pok_name = UPPER(NEW.pok_name);
+END $$ 
+DELIMITER ;
+
+DELIMITER $$ 
+CREATE TRIGGER before_del_pok
+BEFORE DELETE ON pokemon
+FOR EACH ROW
+BEGIN
+    IF EXISTS (SELECT 1 FROM cards WHERE pok_id = OLD.pok_id) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot delete a Pokémon with associated cards';
+    END IF;
+END$$
+DELIMITER ;
 
 
