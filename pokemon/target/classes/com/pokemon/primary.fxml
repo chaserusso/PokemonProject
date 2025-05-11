@@ -38,11 +38,16 @@
                      </font>
                   </Button>
                   <TextField fx:id="usernameField" prefHeight="65.0" prefWidth="530.0" GridPane.rowIndex="1" />
-                  <Label prefHeight="106.0" prefWidth="534.0" text="Enter a username to save your data">
+                  <Label prefHeight="106.0" prefWidth="534.0" text="Enter a username to save your data" textFill="RED" GridPane.rowIndex="2">
                      <font>
-                        <Font size="27.0" />
+                        <Font name="Segoe UI Black" size="30.0" />
                      </font>
                   </Label>
+                  <Button mnemonicParsing="false" onAction="#createAccount" prefHeight="128.0" prefWidth="242.0" text="Create User">
+                     <font>
+                        <Font size="34.0" />
+                     </font>
+                  </Button>
                </children>
             </GridPane>
          </top>

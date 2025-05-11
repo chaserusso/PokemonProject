@@ -7,6 +7,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.control.TextField;
 import javafx.event.ActionEvent;
+import java.sql.ResultSet;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 
 public class PrimaryController {
 
@@ -53,11 +57,27 @@ public class PrimaryController {
             return;
         }
         
-        try(DBConnector dbConnector = DBConnector.INSTANCE) {
-            // Assuming you have a method to create an account in your DBConnector
-            dbConnector.createAccount(username);
+        try(Connection connect = DBConnectionManager.getConnection()) {
+            PreparedStatement checkStmt = connect.prepareStatement("SELECT * FROM player WHERE username = ?");
+            checkStmt.setString(1, username);
+            ResultSet rs = checkStmt.executeQuery();
+            if (rs.next()) {
+                System.out.println("Username already exists. Please choose a different username.");
+                return;
+            }
+            try(PreparedStatement insertStmt = connect.prepareStatement("INSERT INTO player (username) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
+                insertStmt.setString(1, username);
+                insertStmt.executeUpdate();
+                ResultSet generatedKeys = insertStmt.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    playerID = generatedKeys.getInt(1);
+                    playerName = username;
+                    System.out.println("Account created successfully. Player ID: " + playerID);
+                }
+            }
         } catch (Exception e) {
             System.out.println("Error creating account: " + e.getMessage());
+            e.printStackTrace();
             return;
         }
         
@@ -92,7 +112,7 @@ public class PrimaryController {
     private void goToBattleScreen(ActionEvent event) {
         System.out.println("Going to battle screen...");
         try {
-            App.setRoot("battle"); // This assumes you have a battle.fxml file
+            App.setRoot("battle"); 
         } catch (IOException e) {
             System.err.println("Error loading battle screen: " + e.getMessage());
             e.printStackTrace();

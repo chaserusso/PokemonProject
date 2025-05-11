@@ -33,15 +33,16 @@ public class BattleController {
     private int playerMaxHP = 100;
     private int opponentCurrentHP = 100;
     private int opponentMaxHP = 100;
+    private CardController cardController;
     
     @FXML
     private void performAttack(ActionEvent event) {
-        // Simple attack logic - reduce opponent HP by random amount between 5-20
+        
         int damage = (int)(Math.random() * 16) + 5;
         opponentCurrentHP = Math.max(0, opponentCurrentHP - damage);
         opponentPokemonHP.setText("HP: " + opponentCurrentHP + "/" + opponentMaxHP);
         
-        // Opponent counter-attack if still alive
+        
         if (opponentCurrentHP > 0) {
             int counterDamage = (int)(Math.random() * 11) + 5;
             playerCurrentHP = Math.max(0, playerCurrentHP - counterDamage);
@@ -53,12 +54,12 @@ public class BattleController {
     
     @FXML
     private void performHeal(ActionEvent event) {
-        // Heal player Pokemon by random amount between 10-25
+        
         int healAmount = (int)(Math.random() * 16) + 10;
         playerCurrentHP = Math.min(playerMaxHP, playerCurrentHP + healAmount);
         playerPokemonHP.setText("HP: " + playerCurrentHP + "/" + playerMaxHP);
         
-        // Opponent still attacks when you heal
+        
         int damage = (int)(Math.random() * 11) + 5;
         playerCurrentHP = Math.max(0, playerCurrentHP - damage);
         playerPokemonHP.setText("HP: " + playerCurrentHP + "/" + playerMaxHP);
@@ -78,21 +79,21 @@ public class BattleController {
     
     private void checkBattleStatus() {
         if (playerCurrentHP <= 0) {
-            // Player lost
+            
             playerPokemonHP.setText("HP: 0/" + playerMaxHP);
             disableButtons();
-            // You could add a "Game Over" message here
+            
         } else if (opponentCurrentHP <= 0) {
-            // Player won
+            
             opponentPokemonHP.setText("HP: 0/" + opponentMaxHP);
             disableButtons();
-            // You could add a "Victory" message here
+            
         }
     }
     
     private void disableButtons() {
         attackButton.setDisable(true);
         healButton.setDisable(true);
-        // Keep the run button enabled so they can return to main menu
+        
     }
 }
